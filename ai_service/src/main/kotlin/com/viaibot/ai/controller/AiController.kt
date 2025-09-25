@@ -1,16 +1,19 @@
 package com.viaibot.ai.controller
 
+import com.viaibot.ai.entity.dto.UserInputDto
+import com.viaibot.ai.service.AiChatService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api")
-class AiController {
+class AiController(private val aiChatService: AiChatService) {
 
-    @GetMapping("/hello")
-    fun GetHelloWorld(): ResponseEntity<String> {
-        return ResponseEntity.ok("Hello World!")
+    @PostMapping("/chat")
+    fun GetHelloWorld(@RequestBody userInput: UserInputDto): ResponseEntity<String> {
+        return ResponseEntity.ok(aiChatService.chat(userInput.userMessage))
     }
 }
