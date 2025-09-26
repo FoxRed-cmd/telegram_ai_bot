@@ -25,6 +25,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.ai:spring-ai-starter-model-openai:1.0.2")
     implementation("io.projectreactor.netty:reactor-netty-http:1.3.0-M7")
+    implementation("org.springframework.kafka:spring-kafka")
 //    implementation("org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M6")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
