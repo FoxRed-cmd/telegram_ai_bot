@@ -1,5 +1,7 @@
 package com.viaibot.ai.service
 
+import com.viaibot.common.kafka.dto.AnswerMessageDto
+import com.viaibot.common.kafka.dto.UserInputMessageDto
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 
@@ -9,8 +11,8 @@ class KafkaConsumerService(
     private val kafkaProducer: KafkaProducerService
 ) {
     @KafkaListener(topics = ["incoming-message"])
-    fun consumeTextMessage(message: String) {
+    fun consumeTextMessage(message: UserInputMessageDto) {
         val chatResponseText = aiChatService.chat(message)
-        kafkaProducer.send(chatResponseText)
+        kafkaProducer.send(AnswerMessageDto(message.chatId, chatResponseText))
     }
 }
