@@ -7,9 +7,20 @@ spring:
       api-key: "lm-studio"
       chat:
         options:
-          model: google/gemma-3-1b
+          model: qwen/qwen3-4b-2507
           temperature: 0.7
           stream-usage: false
+      embedding:
+        options:
+          model: text-embedding-nomic-embed-text-v1.5@f16
+    vectorstore:
+      pgvector:
+        dimensions: 768
+        initialize-schema: true
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/test}
+    username: ${POSTGRES_USERNAME:test}
+    password: ${POSTGRES_PASSWORD:test}
   kafka:
     bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
     producer:

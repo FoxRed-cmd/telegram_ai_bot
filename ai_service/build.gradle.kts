@@ -19,14 +19,24 @@ repositories {
 	mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.ai:spring-ai-bom:1.0.3")
+    }
+}
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.ai:spring-ai-starter-model-openai")
+    implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
+    implementation("org.springframework.ai:spring-ai-tika-document-reader")
+    implementation("org.springframework.ai:spring-ai-advisors-vector-store")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.ai:spring-ai-starter-model-openai:1.0.2")
     implementation("io.projectreactor.netty:reactor-netty-http:1.3.0-M7")
     implementation("org.springframework.kafka:spring-kafka")
-//    implementation("org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M6")
+    runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
