@@ -43,5 +43,9 @@ spring:
           name: answer-message
           partitions: 3
           replicas: 1
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
 server:
   port: 8081
