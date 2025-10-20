@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: bot
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      group-id: tg-event-handlers
+      properties:
+        "[spring.json.trusted.packages]": "*"
+        "[spring.deserializer.value.delegate.class]": org.springframework.kafka.support.serializer.JsonDeserializer
+    bot-service:
+      topics:
+        incoming-message:
+          name: incoming-message
+          partitions: 3
+          replicas: 1
+        answer-message:
+          name: answer-message
+          partitions: 3
+          replicas: 1
+server:
+  port: ${SERVER_PORT:8082}
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN}

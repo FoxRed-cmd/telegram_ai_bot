@@ -1,13 +1,11 @@
-package com.viaibot.ai
+package com.viaibot.bot
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.scheduling.annotation.EnableAsync
 
-@EnableAsync
 @SpringBootApplication
-class AiServiceApplication
+class BotApplication
 
 fun main(args: Array<String>) {
-	runApplication<AiServiceApplication>(*args)
+	runApplication<BotApplication>(*args)
 }

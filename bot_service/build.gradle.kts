@@ -3,7 +3,6 @@ plugins {
 	kotlin("plugin.spring") version "1.9.25"
 	id("org.springframework.boot") version "3.5.6"
 	id("io.spring.dependency-management") version "1.1.7"
-    kotlin("plugin.jpa") version "1.9.25"
 }
 
 group = "com.viaibot"
@@ -20,26 +19,14 @@ repositories {
 	mavenCentral()
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.ai:spring-ai-bom:1.0.3")
-    }
-}
-
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.ai:spring-ai-starter-model-openai")
-    implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
-    implementation("org.springframework.ai:spring-ai-tika-document-reader")
-    implementation("org.springframework.ai:spring-ai-advisors-vector-store")
-    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-    implementation("org.apache.pdfbox:pdfbox:3.0.5")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("io.projectreactor.netty:reactor-netty-http:1.3.0-M7")
     implementation("org.springframework.kafka:spring-kafka")
-    runtimeOnly("org.postgresql:postgresql")
+    implementation("org.telegram:telegrambots-springboot-longpolling-starter:9.1.0")
+    implementation("org.telegram:telegrambots-client:9.1.0")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -49,12 +36,6 @@ kotlin {
 	compilerOptions {
 		freeCompilerArgs.addAll("-Xjsr305=strict")
 	}
-}
-
-allOpen {
-    annotation("jakarta.persistence.Entity")
-    annotation("jakarta.persistence.MappedSuperclass")
-    annotation("jakarta.persistence.Embeddable")
 }
 
 tasks.withType<Test> {
