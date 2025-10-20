@@ -31,12 +31,13 @@ class AiEmbeddingService(private val vectorStore: VectorStore) {
         val randomAccess = RandomAccessReadBuffer(documentResource.inputStream)
 
         val splitter = TokenTextSplitter(
-            800,
+            500,
             100,
-            100,
+            50,
             1000,
             true
         )
+
 
         Loader.loadPDF(randomAccess).use { document ->
             val stripper = PDFTextStripper()

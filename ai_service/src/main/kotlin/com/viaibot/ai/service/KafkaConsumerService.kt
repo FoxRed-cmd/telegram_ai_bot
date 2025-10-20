@@ -13,6 +13,6 @@ class KafkaConsumerService(
     @KafkaListener(topics = ["incoming-message"])
     fun consumeTextMessage(message: UserInputMessageDto) {
         val chatResponseText = aiChatService.chat(message)
-        kafkaProducer.send(AnswerMessageDto(message.chatId, chatResponseText))
+        chatResponseText.forEach { msg -> kafkaProducer.send(AnswerMessageDto(message.chatId, msg)) }
     }
 }

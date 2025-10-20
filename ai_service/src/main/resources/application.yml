@@ -7,15 +7,19 @@ spring:
       api-key: "lm-studio"
       chat:
         options:
-          model: qwen/qwen3-4b-2507
-          temperature: 0.7
+          model: ${CHAT_MODEL:qwen/qwen3-4b-2507}
+          temperature: ${CHAT_TEMPERATURE:0.7}
           stream-usage: false
+          simple-prompt: ${SIMPLE_PROMPT:}
+          strict-prompt: ${STRICT_PROMPT:}
+          similarity-threshold: ${SIMILARITY_THRESHOLD:0.75}
+          top-k-value: ${TOP_K_VALUE:5}
       embedding:
         options:
-          model: text-embedding-nomic-embed-text-v1.5@f16
+          model: ${EMBEDDING_MODEL:text-embedding-nomic-embed-text-v1.5@f16}
     vectorstore:
       pgvector:
-        dimensions: 768
+        dimensions: ${VECTOR_DIMENSIONS:768}
         initialize-schema: true
   datasource:
     url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/test}
@@ -48,4 +52,4 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
