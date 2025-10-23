@@ -34,6 +34,7 @@ dependencies {
     implementation("org.springframework.ai:spring-ai-tika-document-reader")
     implementation("org.springframework.ai:spring-ai-advisors-vector-store")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.4.0")
     implementation("org.apache.pdfbox:pdfbox:3.0.5")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
