@@ -38,7 +38,6 @@ class AiEmbeddingService(private val vectorStore: VectorStore) {
             true
         )
 
-
         Loader.loadPDF(randomAccess).use { document ->
             val stripper = PDFTextStripper()
             val totalPages = document.numberOfPages

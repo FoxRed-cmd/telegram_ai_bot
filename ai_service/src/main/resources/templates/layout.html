@@ -44,7 +44,9 @@
     document.getElementById("config-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const config = {
-        temperature: parseFloat(document.getElementById("temperature").value)
+        similarityThreshold: parseFloat(document.getElementById("similarityThreshold").value),
+        temperature: parseFloat(document.getElementById("temperature").value),
+        topK: parseInt(document.getElementById("topK").value)
       };
       const res = await fetch("/config", {
         method: "POST",

@@ -1,13 +1,18 @@
 document.addEventListener('DOMContentLoaded', function () {
     const uploadForm = document.getElementById('upload-form');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+
+    const activeTaskId = localStorage.getItem('activeTaskId');
+    if (activeTaskId) {
+        resumeProgress(activeTaskId);
+    }
+
     if (uploadForm) {
         uploadForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(this);
-
-            const progressContainer = document.getElementById('progress-container');
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
 
             progressContainer.classList.remove('d-none');
             progressBar.style.width = '0%';
@@ -18,31 +23,42 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(response => response.json())
                 .then(data => {
                     const taskId = data.taskId;
+                    localStorage.setItem('activeTaskId', taskId);
                     progressText.textContent = `Обработка ${data.totalPages} страниц...`;
-
-                    const interval = setInterval(() => {
-                        fetch(`/documents/progress/${taskId}`)
-                            .then(r => r.json())
-                            .then(status => {
-                                if (!status) return;
-
-                                const percent = Math.round((status.processedPages / status.totalPages) * 100);
-                                progressBar.style.width = percent + '%';
-                                progressBar.textContent = percent + '%';
-
-                                if (status.finished) {
-                                    clearInterval(interval);
-                                    progressText.textContent = '✅ Обработка завершена!';
-                                    setTimeout(() => location.reload(), 1500);
-                                }
-                            })
-                            .catch(() => clearInterval(interval));
-                    }, 1000);
+                    resumeProgress(taskId);
                 })
                 .catch(() => {
                     progressText.textContent = '❌ Ошибка загрузки файла';
                 });
         });
+    }
+
+    function resumeProgress(taskId) {
+        progressContainer.classList.remove('d-none');
+
+        const interval = setInterval(() => {
+            fetch(`/documents/progress/${taskId}`)
+                .then(r => r.json())
+                .then(status => {
+                    if (!status) return;
+
+                    const percent = Math.round((status.processedPages / status.totalPages) * 100);
+                    progressBar.style.width = percent + '%';
+                    progressBar.textContent = percent + '%';
+                    progressText.textContent = `Обработка ${status.processedPages} из ${status.totalPages} страниц...`;
+
+                    if (status.finished) {
+                        clearInterval(interval);
+                        localStorage.removeItem('activeTaskId'); // 🧹 очищаем taskId
+                        progressText.textContent = '✅ Обработка завершена!';
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                })
+                .catch(() => {
+                    clearInterval(interval);
+                    progressText.textContent = '⚠️ Ошибка при получении статуса';
+                });
+        }, 1000);
     }
 });
 
