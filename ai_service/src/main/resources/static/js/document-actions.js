@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressContainer = document.getElementById('progress-container');
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-text');
+    const uploadBtn = document.getElementById('upload-btn');
+    const deleteButtons = document.querySelectorAll("button.btn-danger");
 
     const activeTaskId = localStorage.getItem('activeTaskId');
     if (activeTaskId) {
@@ -19,6 +21,9 @@ document.addEventListener('DOMContentLoaded', function () {
             progressBar.textContent = '0%';
             progressText.textContent = 'Начинаем загрузку...';
 
+            uploadBtn.disabled = true;
+            deleteButtons.forEach(btn => btn.disabled = true);
+
             fetch('/documents/upload', { method: 'POST', body: formData })
                 .then(response => response.json())
                 .then(data => {
@@ -28,13 +33,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     resumeProgress(taskId);
                 })
                 .catch(() => {
-                    progressText.textContent = '❌ Ошибка загрузки файла';
+                    progressText.textContent = 'Ошибка загрузки файла';
                 });
         });
     }
 
     function resumeProgress(taskId) {
         progressContainer.classList.remove('d-none');
+        uploadBtn.disabled = true;
+        deleteButtons.forEach(btn => btn.disabled = true);
 
         const interval = setInterval(() => {
             fetch(`/documents/progress/${taskId}`)
@@ -47,18 +54,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     progressBar.textContent = percent + '%';
                     progressText.textContent = `Обработка ${status.processedPages} из ${status.totalPages} страниц...`;
 
-                    if (status.finished) {
-                        clearInterval(interval);
-                        localStorage.removeItem('activeTaskId'); // 🧹 очищаем taskId
-                        progressText.textContent = '✅ Обработка завершена!';
-                        setTimeout(() => location.reload(), 1500);
+                    if (status.cancelled) {
+                        stopProgressPolling('Обработка прервана', interval);
+                    } else if (status.finished) {
+                        stopProgressPolling('Обработка завершена', interval);
                     }
                 })
                 .catch(() => {
                     clearInterval(interval);
-                    progressText.textContent = '⚠️ Ошибка при получении статуса';
+                    progressText.textContent = 'Ошибка при получении статуса';
                 });
         }, 1000);
+    }
+
+    function stopProgressPolling(textContent, interval) {
+        clearInterval(interval);
+        localStorage.removeItem('activeTaskId');
+        progressText.textContent = textContent;
+        setTimeout(() => location.reload(), 1500);
     }
 });
 
@@ -90,4 +103,11 @@ function deleteDocument(button) {
             button.disabled = false;
             button.textContent = originalText;
         });
+}
+
+async function cancelProcess() {
+    const activeTaskId = localStorage.getItem('activeTaskId');
+    if (activeTaskId) {
+        await fetch(`/documents/cancel/${activeTaskId}`, { method: "POST" });
+    }
 }

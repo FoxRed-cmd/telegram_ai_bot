@@ -1,6 +1,7 @@
 package com.viaibot.ai.service
 
 import com.viaibot.ai.entity.ProcessingStatus
+import com.viaibot.ai.repository.VectorStoreRepository
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.io.RandomAccessReadBuffer
 import org.apache.pdfbox.text.PDFTextStripper
@@ -14,7 +15,10 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
-class AiEmbeddingService(private val vectorStore: VectorStore) {
+class AiEmbeddingService(
+    private val vectorStore: VectorStore,
+    private val vectorStoreRepository: VectorStoreRepository
+    ) {
 
     private val progressMap = ConcurrentHashMap<UUID, ProcessingStatus>()
 
@@ -25,6 +29,12 @@ class AiEmbeddingService(private val vectorStore: VectorStore) {
     }
 
     fun getStatus(taskId: UUID): ProcessingStatus? = progressMap[taskId]
+
+    fun cancel(taskId: UUID) {
+        progressMap[taskId]?.apply {
+            cancelled = true
+        }
+    }
 
     @Async
     fun embed(documentResource: Resource, taskId: UUID) {
@@ -42,7 +52,15 @@ class AiEmbeddingService(private val vectorStore: VectorStore) {
             val stripper = PDFTextStripper()
             val totalPages = document.numberOfPages
 
+            val status = progressMap[taskId] ?: return
+
             for (page in 1..totalPages) {
+                if (status.cancelled) {
+                    progressMap[taskId]?.finished = true
+                    vectorStoreRepository.deleteByFilename(documentResource.filename.toString())
+                    return
+                }
+                
                 stripper.startPage = page
                 stripper.endPage = page
                 val text = stripper.getText(document)

@@ -70,6 +70,13 @@ class AiController(
         return documentService.getStatusDocumentEmbedding(id)
     }
 
+    @PostMapping("/documents/cancel/{id}")
+    @ResponseBody
+    fun cancelEmbedding(@PathVariable id: UUID): ResponseEntity<Unit> {
+        documentService.cancelEmbedding(id)
+        return ResponseEntity.ok().build()
+    }
+
     @DeleteMapping("/documents/delete/{filename}")
     fun deleteDocument(@PathVariable() filename: String): ResponseEntity<Unit> {
         documentService.deleteDocument(filename)

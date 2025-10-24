@@ -23,7 +23,7 @@
 
             <form id="upload-form" enctype="multipart/form-data" class="input-group mb-4">
                 <input type="file" name="file" class="form-control" accept=".pdf" required>
-                <button class="btn btn-success" type="submit">Загрузить</button>
+                <button id="upload-btn" class="btn btn-success" type="submit">Загрузить</button>
             </form>
 
             <div id="progress-container" class="my-3 d-none">
@@ -32,6 +32,7 @@
                          style="width: 0%">0%</div>
                 </div>
                 <p id="progress-text" class="mt-2 text-center">Начинаем обработку...</p>
+                <button id="cancelProcessBtn" class="btn btn-warning mt-2" onclick="cancelProcess()">Отменить обработку</button>
             </div>
 
             <table class="table table-hover align-middle">
@@ -47,7 +48,7 @@
                     <td th:text="${doc['filename']}"></td>
                     <td th:text="${doc['cnt']}"></td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-danger"
+                        <button id="remove-btn" class="btn btn-sm btn-danger"
                                 th:attr="data-filename=${doc['filename']}"
                                 onclick="deleteDocument(this)">
                             Удалить
