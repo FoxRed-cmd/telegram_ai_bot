@@ -31,4 +31,8 @@ class DocumentService(
     }
 
     fun getStatusDocumentEmbedding(taskId: UUID): ProcessingStatus? = aiEmbeddingService.getStatus(taskId)
+
+    fun cancelEmbedding(taskId: UUID) {
+        aiEmbeddingService.cancel(taskId)
+    }
 }

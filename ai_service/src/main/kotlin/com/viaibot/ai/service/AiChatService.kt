@@ -1,13 +1,14 @@
 package com.viaibot.ai.service
 
+import com.viaibot.ai.config.AiChatOptionsConfig
 import com.viaibot.common.kafka.dto.UserInputMessageDto
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor
 import org.springframework.ai.chat.memory.ChatMemory
-import org.springframework.ai.chat.messages.MessageType
 import org.springframework.ai.chat.prompt.PromptTemplate
+import org.springframework.ai.openai.OpenAiChatOptions
 import org.springframework.ai.vectorstore.SearchRequest
 import org.springframework.ai.vectorstore.VectorStore
 import org.springframework.beans.factory.annotation.Value
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Service
 class AiChatService(
     private val chatClient: ChatClient,
     private val chatMemory: ChatMemory,
-    private val vectorStore: VectorStore
+    private val vectorStore: VectorStore,
+    private val aiConfig: AiChatOptionsConfig
 ) {
 
     @Value("\${spring.ai.openai.chat.options.simple-prompt}")
@@ -26,21 +28,13 @@ class AiChatService(
     @Value("\${spring.ai.openai.chat.options.strict-prompt}")
     private var strictPrompt: String? = null
 
-    @Value("\${spring.ai.openai.chat.options.similarity-threshold}")
-    lateinit var similarityThreshold: String
-
-    @Value("\${spring.ai.openai.chat.options.top-k-value}")
-    lateinit var topK: String
-
     lateinit var simplePromptTemplate: PromptTemplate
 
     lateinit var strictPromptTemplate: PromptTemplate
 
     lateinit var searchRequest: SearchRequest
 
-    lateinit var simpleQuestionAdvisor: QuestionAnswerAdvisor
-
-    lateinit var strictQuestionAdvisor: QuestionAnswerAdvisor
+    lateinit var questionAdvisor: QuestionAnswerAdvisor
 
     private val log = LoggerFactory.getLogger(AiChatService::class.java)
 
@@ -72,40 +66,36 @@ class AiChatService(
             ответь на комментарий пользователя. Если ответ не соответствует контексту, сообщи
             пользователю, что ты не можешь ответить на вопрос.
         """.trimIndent())
-
-        searchRequest = SearchRequest.builder()
-            .similarityThreshold(similarityThreshold.toDouble())
-            .topK(topK.toInt())
-            .build()
-
-        simpleQuestionAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
-            .searchRequest(searchRequest)
-            .promptTemplate(simplePromptTemplate)
-            .build()
-
-        strictQuestionAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
-            .searchRequest(searchRequest)
-            .promptTemplate(strictPromptTemplate)
-            .build()
-
-        log.info("Init AiChatService: similarityThreshold - {}, topK - {}", similarityThreshold, topK)
     }
 
     fun chat(message: UserInputMessageDto): List<String> {
         /*val memory = chatMemory.get(message.chatId.toString())
-
         val recentUserMessages = memory
             .filter { it -> it.messageType == MessageType.USER }
             .takeLast(1)
             .joinToString("\n") { it.text }
-
-
         val searchQuery = "$recentUserMessages\n${message.message}"*/
+        val config = aiConfig.get()
+
+        log.info("AI Config: topK: {}, similarityThreshold: {}, temperature: {}",
+            config.topK, config.similarityThreshold, config.temperature)
+
+        searchRequest = SearchRequest.builder()
+            .similarityThreshold(config.similarityThreshold)
+            .topK(config.topK)
+            .build()
+
+        questionAdvisor = buildQuestionAdvisor(message.mode)
+
+        val options = OpenAiChatOptions.builder()
+            .temperature(config.temperature)
+            .build()
 
         val chatResponse = chatClient
             .prompt()
+            .options(options)
             .advisors { a -> a.param(ChatMemory.CONVERSATION_ID, message.chatId) }
-            .advisors(if (message.mode == "/simple") simpleQuestionAdvisor else strictQuestionAdvisor)
+            .advisors(questionAdvisor)
             .user(message.message)
             .call()
             .chatResponse()
@@ -116,6 +106,23 @@ class AiChatService(
         }
 
         return listOf(textResponse)
+    }
+
+    private fun buildQuestionAdvisor(mode: String): QuestionAnswerAdvisor {
+        return when(mode) {
+            "/simple" -> QuestionAnswerAdvisor.builder(vectorStore)
+                .searchRequest(searchRequest)
+                .promptTemplate(simplePromptTemplate)
+                .build()
+            "/strict" -> QuestionAnswerAdvisor.builder(vectorStore)
+                .searchRequest(searchRequest)
+                .promptTemplate(strictPromptTemplate)
+                .build()
+            else ->  QuestionAnswerAdvisor.builder(vectorStore)
+                .searchRequest(searchRequest)
+                .promptTemplate(simplePromptTemplate)
+                .build()
+        }
     }
 }
 

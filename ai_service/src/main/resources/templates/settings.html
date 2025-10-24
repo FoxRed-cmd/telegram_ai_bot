@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Настройки</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="card shadow-sm mx-auto" style="max-width: 800px;">
+        <div class="card-body">
+            <h1 class="card-title mb-4 text-center">Настройки модели</h1>
+
+            <form id="config-form" th:object="${config}">
+                <div class="mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Температура:
+                                <span id="temperatureValue" class="fw-bold">[[*{temperature}]]</span>
+                            </label>
+                            <input type="range" step="0.01" min="0" max="1"
+                                   th:field="*{temperature}" class="form-range"
+                                   oninput="document.getElementById('temperatureValue').textContent = this.value">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Процент сходства:
+                            </label>
+                            <input type="number" step="0.01" min="0" max="1"
+                                   th:field="*{similarityThreshold}" class="form-control"
+                                   oninput="document.getElementById('similarityThresholdValue').textContent = this.value">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Количество выборки:
+                            </label>
+                            <input type="number" step="1" min="0"
+                                   th:field="*{topK}" class="form-control"
+                                   oninput="document.getElementById('topKValue').textContent = this.value">
+                        </div>
+                        <div class="col-md-6">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
