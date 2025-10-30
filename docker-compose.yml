@@ -34,33 +34,48 @@ services:
       - pgvector_data:/var/lib/postgresql/data
     ports:
       - '5432:5432'
-#  ai-service:
-#    build: ./ai_service
-#    environment:
-#      SERVER_PORT: 8081
-#      KAFKA_SERVERS: kafka1:9090
-#      POSTGRES_URL: jdbc:postgresql://pgvector:5432/test
-#      POSTGRES_USERNAME: test
-#      POSTGRES_PASSWORD: test
-#      EMBEDDING_MODEL: text-embedding-nomic-embed-text-v1.5@f16
-#      CHAT_MODEL: qwen/qwen3-4b-2507
-#      VECTOR_DIMENSIONS: 768
-#      CHAT_TEMPERATURE: 0.7
-#      SIMILARITY_THRESHOLD: 0.65
-#      TOP_K_VALUE: 6
-#      AI_URL: http://host.docker.internal:1234
-#    ports:
-#      - '8081:8081'
-#    depends_on:
-#      - kafka1
-#      - pgvector
-#  bot-service:
-#    build: ./bot_service
-#    environment:
-#      KAFKA_SERVERS: kafka1:9090
-#    env_file:
-#      - .env
-#    depends_on:
-#      - ai-service
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+  ai-service:
+    build: ./ai_service
+    environment:
+      SERVER_PORT: 8081
+      KAFKA_SERVERS: kafka1:9090
+      POSTGRES_URL: jdbc:postgresql://pgvector:5432/test
+      POSTGRES_USERNAME: test
+      POSTGRES_PASSWORD: test
+      EMBEDDING_MODEL: nomic-embed-text:latest
+      CHAT_MODEL: qwen3:4b
+      VECTOR_DIMENSIONS: 768
+      CHAT_TEMPERATURE: 0.7
+      SIMILARITY_THRESHOLD: 0.65
+      TOP_K_VALUE: 6
+      AI_URL: http://host.docker.internal:11434
+    ports:
+      - '8081:8081'
+    depends_on:
+      - kafka1
+      - pgvector
+  bot-service:
+    build: ./bot_service
+    environment:
+      KAFKA_SERVERS: kafka1:9090
+    env_file:
+      - .env
+    depends_on:
+      - ai-service
 volumes:
+  ollama:
   pgvector_data:
