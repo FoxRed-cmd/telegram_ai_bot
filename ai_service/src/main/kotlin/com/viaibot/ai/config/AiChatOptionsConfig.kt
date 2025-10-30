@@ -8,13 +8,13 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class AiChatOptionsConfig {
-    @Value("\${spring.ai.openai.chat.options.temperature}")
+    @Value("\${spring.ai.ollama.chat.options.temperature}")
     private var temperature = 0.7
 
-    @Value("\${spring.ai.openai.chat.options.similarity-threshold}")
+    @Value("\${spring.ai.ollama.chat.options.similarity-threshold}")
     private var similarityThreshold = 0.60
 
-    @Value("\${spring.ai.openai.chat.options.top-k-value}")
+    @Value("\${spring.ai.ollama.chat.options.top-k-value}")
     private var topK = 5
 
     private lateinit var configRef: AtomicReference<AiConfigDto>

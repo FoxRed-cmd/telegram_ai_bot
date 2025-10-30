@@ -2,12 +2,11 @@ spring:
   application:
     name: ai_service
   ai:
-    openai:
-      base-url: ${AI_URL:http://localhost:1234}
-      api-key: "lm-studio"
+    ollama:
+      base-url: ${AI_URL:http://localhost:11434}
       chat:
         options:
-          model: ${CHAT_MODEL:qwen/qwen3-4b-2507}
+          model: ${CHAT_MODEL:qwen3:4b}
           temperature: ${CHAT_TEMPERATURE:0.7}
           stream-usage: false
           simple-prompt: ${SIMPLE_PROMPT:}
@@ -16,7 +15,7 @@ spring:
           top-k-value: ${TOP_K_VALUE:5}
       embedding:
         options:
-          model: ${EMBEDDING_MODEL:text-embedding-nomic-embed-text-v1.5@f16}
+          model: ${EMBEDDING_MODEL:nomic-embed-text:latest}
     vectorstore:
       pgvector:
         dimensions: ${VECTOR_DIMENSIONS:768}

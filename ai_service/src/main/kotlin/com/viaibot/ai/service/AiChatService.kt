@@ -8,7 +8,7 @@ import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor
 import org.springframework.ai.chat.memory.ChatMemory
 import org.springframework.ai.chat.prompt.PromptTemplate
-import org.springframework.ai.openai.OpenAiChatOptions
+import org.springframework.ai.ollama.api.OllamaOptions
 import org.springframework.ai.vectorstore.SearchRequest
 import org.springframework.ai.vectorstore.VectorStore
 import org.springframework.beans.factory.annotation.Value
@@ -22,10 +22,10 @@ class AiChatService(
     private val aiConfig: AiChatOptionsConfig
 ) {
 
-    @Value("\${spring.ai.openai.chat.options.simple-prompt}")
+    @Value("\${spring.ai.ollama.chat.options.simple-prompt}")
     private var simplePrompt: String? = null
 
-    @Value("\${spring.ai.openai.chat.options.strict-prompt}")
+    @Value("\${spring.ai.ollama.chat.options.strict-prompt}")
     private var strictPrompt: String? = null
 
     lateinit var simplePromptTemplate: PromptTemplate
@@ -87,7 +87,7 @@ class AiChatService(
 
         questionAdvisor = buildQuestionAdvisor(message.mode)
 
-        val options = OpenAiChatOptions.builder()
+        val options = OllamaOptions.builder()
             .temperature(config.temperature)
             .build()
 
