@@ -101,3 +101,59 @@ docker-compose up -d --build
 Для загрузки документов в БД можно использовать
 [admin панель](http://localhost:8081/documents)
 
+## Локальный запуск с Ollama, Docker (GPU) и собственным telegram ботом
+
+Для запуска в Docker Compose необходимо:
+1. [Загрузить Git](https://git-scm.com/) или
+[ZIP файл](https://github.com/FoxRed-cmd/telegram_ai_bot/archive/refs/heads/feature/ollama.zip)
+сразу с нужной веткой
+2. Если используйте git выполнить
+```bash
+git clone https://github.com/FoxRed-cmd/telegram_ai_bot.git
+```
+```bash
+cd telegram_ai_bot
+```
+```bash
+git checkout -b feature/ollama origin/feature/ollama
+```
+3. Если загрузили zip, распаковать в удобноее место и открыть в командной строке
+4. Выполнить команды
+```bash
+echo "TELEGRAM_BOT_TOKEN=<token>" >> .env # Заменить <token> на валидный
+```
+```bash
+docker-compose up -d --build
+```
+5. После того, как контейнеры поднимуться подключиться к контейнеру ollama и загрузить используемые модели
+```bash
+docker exec -it ollama bash
+```
+```bash
+ollama pull nomic-embed-text
+```
+```bash
+ollama pull qwen3:4b
+```
+6. После загрузки можно посмотреть список моделей
+```bash
+ollama list 
+```
+Вывод:
+```bash
+NAME                       ID              SIZE      MODIFIED
+nomic-embed-text:latest    0a109f422b47    274 MB    3 hours ago
+qwen3:4b                   359d7dd4bcda    2.5 GB    3 hours ago
+```
+Чтобы использовать другие модели, можно посмотреть их названия с помощью команды `ollama list` колонка `NAME`
+и отредактировать файл `docker-compose.yml` указав соответсвующие имена.
+
+Остановить и запуск `docker-compose`
+```bash
+docker-compose down
+```
+```bash
+docker-compose up -d
+```
+## Google Colab 🤯
+[Пайплайн для запуска](https://drive.google.com/file/d/1axnu_C3JG2fyhkPGFPIN2mDHb-OUVhy1/view?usp=drive_link)
