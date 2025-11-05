@@ -4,6 +4,5 @@ data class AiConfigDto(
     val temperature: Double,
     val similarityThreshold: Double,
     val topK: Int,
-    val customPrompt: String?,
-    var isUpdate: Boolean = true
+    val customPrompt: String?
 )

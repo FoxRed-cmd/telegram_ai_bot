@@ -4,7 +4,6 @@ import com.viaibot.ai.entity.dto.AiConfigDto
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class AiChatOptionsConfig {
@@ -20,7 +19,7 @@ class AiChatOptionsConfig {
     @Value("\${spring.ai.openai.chat.options.custom-prompt}")
     private var customPrompt: String? = null
 
-    private lateinit var configRef: AtomicReference<AiConfigDto>
+    private lateinit var config: AiConfigDto
 
     @PostConstruct
     fun init() {
@@ -39,20 +38,17 @@ class AiChatOptionsConfig {
             ---------------
         """.trimIndent()
 
-        configRef = AtomicReference(
-            AiConfigDto(
-                temperature = temperature,
-                similarityThreshold = similarityThreshold,
-                topK = topK,
-                customPrompt = customPrompt
-            )
+        config = AiConfigDto(
+            temperature,
+            similarityThreshold,
+            topK,
+            customPrompt
         )
     }
 
-    fun get(): AiConfigDto = configRef.get()
+    fun get(): AiConfigDto = config
 
-    fun update(newConfig: AiConfigDto, trueUpdate: Boolean = true) {
-        newConfig.isUpdate = trueUpdate
-        configRef.set(newConfig)
+    fun update(newConfig: AiConfigDto) {
+        config = newConfig
     }
 }
