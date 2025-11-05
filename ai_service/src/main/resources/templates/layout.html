@@ -46,7 +46,8 @@
       const config = {
         similarityThreshold: parseFloat(document.getElementById("similarityThreshold").value),
         temperature: parseFloat(document.getElementById("temperature").value),
-        topK: parseInt(document.getElementById("topK").value)
+        topK: parseInt(document.getElementById("topK").value),
+        customPrompt: document.getElementById("customPrompt").value
       };
       const res = await fetch("/config", {
         method: "POST",

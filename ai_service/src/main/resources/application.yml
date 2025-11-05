@@ -9,8 +9,7 @@ spring:
           model: ${CHAT_MODEL:qwen3:4b}
           temperature: ${CHAT_TEMPERATURE:0.7}
           stream-usage: false
-          simple-prompt: ${SIMPLE_PROMPT:}
-          strict-prompt: ${STRICT_PROMPT:}
+          custom-prompt: ${CUSTOM_PROMPT:}
           similarity-threshold: ${SIMILARITY_THRESHOLD:0.75}
           top-k-value: ${TOP_K_VALUE:5}
       embedding:
