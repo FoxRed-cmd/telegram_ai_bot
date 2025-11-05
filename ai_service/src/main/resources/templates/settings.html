@@ -45,6 +45,16 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Кастомный системный промпт (для использования выберите в боте режим /custom):
+                    </label>
+                    <textarea rows="10" class="form-control"
+                              th:field="*{customPrompt}"
+                              placeholder="Введите системный промпт для модели..."></textarea>
+                </div>
+
                 <button class="btn btn-primary" type="submit">Сохранить</button>
             </form>
         </div>

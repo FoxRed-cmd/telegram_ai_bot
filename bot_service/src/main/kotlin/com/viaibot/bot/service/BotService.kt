@@ -62,7 +62,7 @@ class BotService(
         botStatusService.startTyping(chatId)
         when(text) {
             "/start", "/changemode" -> setKeyboard(chatId)
-            "/simple", "/strict" -> {
+            "/simple", "/strict", "/custom" -> {
                 botAiModeService.setMode(chatId, text)
                 sendMessage("Выбран режим ${text.replace("/", "")}", chatId)
             }
@@ -74,7 +74,7 @@ class BotService(
         botStatusService.stopTyping(chatId)
 
         val keyboard = ReplyKeyboardMarkup.builder()
-            .keyboard(listOf(KeyboardRow("/simple", "/strict")))
+            .keyboard(listOf(KeyboardRow("/simple", "/strict", "/custom")))
             .resizeKeyboard(true)
             .isPersistent(true)
             .oneTimeKeyboard(true)
@@ -86,7 +86,10 @@ class BotService(
             .text("""
                 Выберите режим работы:
                 simple (простой) - бот будет отвечать опираясь не только на данные из документов, но и на свои собственные знания
+                
                 strict (строгий) - бот будет отвечать опираясь только на данные из документов
+                
+                custom - бот будет отвечать по указанному вами системному промпту (указывается в admin-панели)
             """.trimIndent())
             .replyMarkup(keyboard)
             .build()

@@ -21,26 +21,7 @@ class AiChatService(
     private val vectorStore: VectorStore,
     private val aiConfig: AiChatOptionsConfig
 ) {
-
-    @Value("\${spring.ai.openai.chat.options.simple-prompt}")
-    private var simplePrompt: String? = null
-
-    @Value("\${spring.ai.openai.chat.options.strict-prompt}")
-    private var strictPrompt: String? = null
-
-    lateinit var simplePromptTemplate: PromptTemplate
-
-    lateinit var strictPromptTemplate: PromptTemplate
-
-    lateinit var searchRequest: SearchRequest
-
-    lateinit var questionAdvisor: QuestionAnswerAdvisor
-
-    private val log = LoggerFactory.getLogger(AiChatService::class.java)
-
-    @PostConstruct
-    fun init() {
-        simplePromptTemplate = PromptTemplate(if (!simplePrompt.isNullOrEmpty()) simplePrompt else """
+    private val simplePromptTemplate = PromptTemplate("""
             Ты — дружелюбный и полезный ассистент. Отвечай на вопросы пользователя понятно, интересно и по возможности полно. 
             Не ограничивайся никакими документами, если хочешь можешь использовать свои знания. Старайся отвечать лаконично и четко по вопросу.
             
@@ -53,7 +34,7 @@ class AiChatService(
             ---------------------
         """.trimIndent())
 
-        strictPromptTemplate = PromptTemplate(if (!strictPrompt.isNullOrEmpty()) strictPrompt else """
+    private val strictPromptTemplate = PromptTemplate("""
             {query}
 
             Контекстная информация указана ниже, обрамленная ---------------------
@@ -66,7 +47,18 @@ class AiChatService(
             ответь на комментарий пользователя. Если ответ не соответствует контексту, сообщи
             пользователю, что ты не можешь ответить на вопрос.
         """.trimIndent())
-    }
+
+    lateinit var searchRequest: SearchRequest
+
+    lateinit var questionAdvisor: QuestionAnswerAdvisor
+
+    lateinit var options: OpenAiChatOptions
+
+    lateinit var customPromptTemplate: PromptTemplate
+
+    private var currentMode: String? = null
+
+    private val log = LoggerFactory.getLogger(AiChatService::class.java)
 
     fun chat(message: UserInputMessageDto): List<String> {
         /*val memory = chatMemory.get(message.chatId.toString())
@@ -80,16 +72,30 @@ class AiChatService(
         log.info("AI Config: topK: {}, similarityThreshold: {}, temperature: {}",
             config.topK, config.similarityThreshold, config.temperature)
 
-        searchRequest = SearchRequest.builder()
-            .similarityThreshold(config.similarityThreshold)
-            .topK(config.topK)
-            .build()
+        if (config.isUpdate) {
+            searchRequest = SearchRequest.builder()
+                .similarityThreshold(config.similarityThreshold)
+                .topK(config.topK)
+                .build()
 
-        questionAdvisor = buildQuestionAdvisor(message.mode)
+            customPromptTemplate = if (!config.customPrompt.isNullOrEmpty()) {
+                PromptTemplate(config.customPrompt)
+            } else {
+                simplePromptTemplate
+            }
 
-        val options = OpenAiChatOptions.builder()
-            .temperature(config.temperature)
-            .build()
+            options = OpenAiChatOptions.builder()
+                .temperature(config.temperature)
+                .build()
+
+            aiConfig.update(config, false)
+        }
+
+        if (currentMode == null || currentMode != message.mode) {
+            currentMode = message.mode
+            chatMemory.clear(message.chatId.toString())
+            questionAdvisor = buildQuestionAdvisor(message.mode)
+        }
 
         val chatResponse = chatClient
             .prompt()
@@ -117,6 +123,10 @@ class AiChatService(
             "/strict" -> QuestionAnswerAdvisor.builder(vectorStore)
                 .searchRequest(searchRequest)
                 .promptTemplate(strictPromptTemplate)
+                .build()
+            "/custom" -> QuestionAnswerAdvisor.builder(vectorStore)
+                .searchRequest(searchRequest)
+                .promptTemplate(customPromptTemplate)
                 .build()
             else ->  QuestionAnswerAdvisor.builder(vectorStore)
                 .searchRequest(searchRequest)
