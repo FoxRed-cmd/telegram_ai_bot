@@ -30,7 +30,8 @@ class AiController(
     @PostMapping("/config")
     @ResponseBody
     fun updateConfig(@RequestBody newConfig: AiConfigDto): ResponseEntity<AiConfigDto> {
-        require(newConfig.temperature in 0.0..2.0) { "Temperature must be between 0.0 and 1.0" }
+        require(newConfig.temperature in 0.0..1.0) { "Temperature must be between 0.0 and 1.0" }
+
         aiConfig.update(newConfig)
         return ResponseEntity.ok(aiConfig.get())
     }
