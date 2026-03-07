@@ -11,7 +11,7 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       group-id: tg-event-handlers
       properties:
-        "[spring.json.trusted.packages]": "*"
+        "[spring.json.trusted.packages]": "com.viaibot.common.kafka.dto"
         "[spring.deserializer.value.delegate.class]": org.springframework.kafka.support.serializer.JsonDeserializer
     bot-service:
       topics:
@@ -25,6 +25,14 @@ spring:
           replicas: 1
 server:
   port: ${SERVER_PORT:8082}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
 telegram:
   bot:
     token: ${TELEGRAM_BOT_TOKEN}

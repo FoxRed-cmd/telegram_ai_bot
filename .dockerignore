@@ -1,0 +1,17 @@
+.git
+.idea
+*.iml
+build/
+.gradle/
+bin/
+*.log
+.DS_Store
+.qwen/
+*.md
+!common/
+!ai_service/
+!bot_service/
+!build.gradle.kts
+!settings.gradle.kts
+!gradle/
+!gradlew

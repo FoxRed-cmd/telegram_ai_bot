@@ -1,5 +1,3 @@
-version: '4.4'
-
 services:
   kafka1:
     image: bitnamilegacy/kafka:latest
@@ -35,14 +33,18 @@ services:
     ports:
       - '5432:5432'
   ai-service:
-    build: ./ai_service
+    build:
+      context: .
+      dockerfile: ai_service/Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       SERVER_PORT: 8081
       KAFKA_SERVERS: kafka1:9090
       POSTGRES_URL: jdbc:postgresql://pgvector:5432/test
       POSTGRES_USERNAME: test
       POSTGRES_PASSWORD: test
-      EMBEDDING_MODEL: text-embedding-nomic-embed-text-v1.5@f16
+      EMBEDDING_MODEL: text-embedding-nomic-embed-text-v2-moe
       CHAT_MODEL: qwen/qwen3-4b-2507
       VECTOR_DIMENSIONS: 768
       CHAT_TEMPERATURE: 0.7
@@ -54,13 +56,27 @@ services:
     depends_on:
       - kafka1
       - pgvector
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
   bot-service:
-    build: ./bot_service
+    build:
+      context: .
+      dockerfile: bot_service/Dockerfile
     environment:
       KAFKA_SERVERS: kafka1:9090
     env_file:
       - .env
     depends_on:
       - ai-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 volumes:
   pgvector_data:

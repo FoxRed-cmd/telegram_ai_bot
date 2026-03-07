@@ -11,10 +11,10 @@ class AiChatOptionsConfig {
     private var temperature = 0.7
 
     @Value("\${spring.ai.openai.chat.options.similarity-threshold}")
-    private var similarityThreshold = 0.60
+    private var similarityThreshold = 0.65
 
     @Value("\${spring.ai.openai.chat.options.top-k-value}")
-    private var topK = 5
+    private var topK = 6
 
     @Value("\${spring.ai.openai.chat.options.custom-prompt}")
     private var customPrompt: String? = null

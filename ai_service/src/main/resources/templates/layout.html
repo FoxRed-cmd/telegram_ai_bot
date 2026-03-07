@@ -6,42 +6,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title layout:title-pattern="$CONTENT_TITLE — AI Service">AI Service</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-expand-lg mb-4 shadow-sm">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="/">AI Service</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link"
-                       th:classappend="${currentPath == '/documents'} ? 'active' : ''"
-                       th:href="@{/documents}">Документы</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link"
-                       th:classappend="${currentPath == '/settings'} ? 'active' : ''"
-                       th:href="@{/settings}">Настройки</a>
-                </li>
-            </ul>
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <a class="sidebar-brand" href="/">AI Service</a>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a class="nav-link"
+           th:classappend="${currentPath == '/documents'} ? 'active' : ''"
+           th:href="@{/documents}">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            Документы
+        </a>
+        <a class="nav-link"
+           th:classappend="${currentPath == '/settings'} ? 'active' : ''"
+           th:href="@{/settings}">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            Настройки
+        </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <div class="sidebar-status">
+            <span class="status-dot"></span>
+            <span class="status-text">Online</span>
         </div>
     </div>
-</nav>
+</aside>
 
-<div class="container py-4" layout:fragment="content">
-</div>
+<main class="main-content">
+    <div class="content-wrapper" layout:fragment="content">
+    </div>
+</main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/document-actions.js"></script>
 <script>
-    document.getElementById("config-form").addEventListener("submit", async (e) => {
+    document.getElementById("config-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const config = {
         similarityThreshold: parseFloat(document.getElementById("similarityThreshold").value),
@@ -54,7 +64,26 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
+      
+      if (res.ok) {
+        showNotification("Настройки сохранены", "success");
+      } else {
+        showNotification("Ошибка сохранения", "error");
+      }
     });
+    
+    function showNotification(message, type) {
+      const notification = document.createElement("div");
+      notification.className = `notification notification-${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.classList.add("notification-show"), 10);
+      setTimeout(() => {
+        notification.classList.remove("notification-show");
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
 </script>
 </body>
 </html>

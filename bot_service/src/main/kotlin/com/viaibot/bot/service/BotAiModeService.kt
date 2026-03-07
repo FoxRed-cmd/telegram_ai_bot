@@ -1,11 +1,11 @@
 package com.viaibot.bot.service
 
 import org.springframework.stereotype.Service
-import org.telegram.telegrambots.meta.generics.TelegramClient
+import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class BotAiModeService() {
-    private val modeList = HashMap<Long, String>()
+    private val modeList = ConcurrentHashMap<Long, String>()
 
     fun setMode(chatId: Long, mode: String) {
         modeList[chatId] = mode

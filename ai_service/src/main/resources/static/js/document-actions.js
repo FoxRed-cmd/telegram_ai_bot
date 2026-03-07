@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressText = document.getElementById('progress-text');
     const uploadBtn = document.getElementById('upload-btn');
     const deleteButtons = document.querySelectorAll("button.btn-danger");
+    let currentPollingInterval = null;
 
     const activeTaskId = localStorage.getItem('activeTaskId');
     if (activeTaskId) {
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
             progressBar.style.width = '0%';
             progressBar.textContent = '0%';
             progressText.textContent = 'Начинаем загрузку...';
+            progressText.style.color = '#8b949e';
 
             uploadBtn.disabled = true;
             deleteButtons.forEach(btn => btn.disabled = true);
@@ -32,8 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     progressText.textContent = `Обработка ${data.totalPages} страниц...`;
                     resumeProgress(taskId);
                 })
-                .catch(() => {
-                    progressText.textContent = 'Ошибка загрузки файла';
+                .catch((error) => {
+                    console.error('Upload error:', error);
+                    handleError('Ошибка загрузки файла');
                 });
         });
     }
@@ -43,28 +46,70 @@ document.addEventListener('DOMContentLoaded', function () {
         uploadBtn.disabled = true;
         deleteButtons.forEach(btn => btn.disabled = true);
 
-        const interval = setInterval(() => {
+        currentPollingInterval = setInterval(() => {
             fetch(`/documents/progress/${taskId}`)
                 .then(r => r.json())
                 .then(status => {
                     if (!status) return;
 
-                    const percent = Math.round((status.processedPages / status.totalPages) * 100);
+                    // Обработка ошибки
+                    if (status.failed) {
+                        handleError(status.errorMessage || 'Произошла ошибка при обработке');
+                        return;
+                    }
+
+                    // Обработка отмены
+                    if (status.cancelled) {
+                        stopProgressPolling('Обработка прервана', currentPollingInterval);
+                        return;
+                    }
+
+                    // Вычисляем прогресс
+                    let percent = 0;
+                    let progressMessage = '';
+
+                    if (status.totalChunks > 0) {
+                        // Этап 2: Векторизация чанков (от 0% до 100%)
+                        percent = Math.round((status.embeddedChunks / status.totalChunks) * 100);
+                        progressMessage = `Векторизация чанков: ${status.embeddedChunks} из ${status.totalChunks}`;
+                    } else if (status.totalPages > 0) {
+                        // Этап 1: Извлечение текста (от 0% до 100%)
+                        percent = Math.round((status.processedPages / status.totalPages) * 100);
+                        progressMessage = `Извлечение текста: ${status.processedPages} из ${status.totalPages} страниц`;
+                    }
+
                     progressBar.style.width = percent + '%';
                     progressBar.textContent = percent + '%';
-                    progressText.textContent = `Обработка ${status.processedPages} из ${status.totalPages} страниц...`;
+                    progressText.textContent = progressMessage;
+                    progressText.style.color = '#8b949e';
 
-                    if (status.cancelled) {
-                        stopProgressPolling('Обработка прервана', interval);
-                    } else if (status.finished) {
-                        stopProgressPolling('Обработка завершена', interval);
+                    if (status.finished) {
+                        stopProgressPolling('Обработка завершена', currentPollingInterval);
                     }
                 })
-                .catch(() => {
-                    clearInterval(interval);
-                    progressText.textContent = 'Ошибка при получении статуса';
+                .catch((error) => {
+                    console.error('Polling error:', error);
+                    handleError('Ошибка при получении статуса');
                 });
         }, 1000);
+    }
+
+    function handleError(message) {
+        if (currentPollingInterval) {
+            clearInterval(currentPollingInterval);
+            currentPollingInterval = null;
+        }
+        localStorage.removeItem('activeTaskId');
+        
+        progressBar.classList.remove('progress-bar-animated');
+        progressBar.style.backgroundColor = '#f85149';
+        progressBar.textContent = 'Ошибка';
+        progressText.textContent = message;
+        progressText.style.color = '#f85149';
+        
+        uploadBtn.disabled = false;
+        deleteButtons.forEach(btn => btn.disabled = false);
+        // Убрана автоматическая перезагрузка - пользователь сам решает когда перезагрузить страницу
     }
 
     function stopProgressPolling(textContent, interval) {

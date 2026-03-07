@@ -15,7 +15,7 @@ spring:
           top-k-value: ${TOP_K_VALUE:5}
       embedding:
         options:
-          model: ${EMBEDDING_MODEL:text-embedding-nomic-embed-text-v1.5@f16}
+          model: ${EMBEDDING_MODEL:text-embedding-nomic-embed-text-v2-moe}
     vectorstore:
       pgvector:
         dimensions: ${VECTOR_DIMENSIONS:768}
@@ -34,7 +34,7 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       group-id: tg-event-handlers
       properties:
-        "[spring.json.trusted.packages]": "*"
+        "[spring.json.trusted.packages]": "com.viaibot.common.kafka.dto"
         "[spring.deserializer.value.delegate.class]": org.springframework.kafka.support.serializer.JsonDeserializer
     ai-service:
       topics:
@@ -50,5 +50,20 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
+embedding:
+  chunk-size: 500                    # Максимальное количество токенов в чанке
+  min-chunk-size-chars: 100          # Минимальный размер чанка в символах
+  min-chunk-length-to-embed: 50      # Минимальная длина чанка в символах для эмбеддинга
+  max-chunks: 1000                   # Максимальное количество чанков на документ
+  keep-separator: true               # Сохранять разделители (абзацы, новые строки)
+  batch-size: 5                      # Размер батча для отправки в векторное хранилище
 server:
   port: ${SERVER_PORT:8081}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

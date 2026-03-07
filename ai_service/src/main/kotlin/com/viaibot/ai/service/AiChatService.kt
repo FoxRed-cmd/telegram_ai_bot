@@ -11,7 +11,6 @@ import org.springframework.ai.openai.OpenAiChatOptions
 import org.springframework.ai.vectorstore.SearchRequest
 import org.springframework.ai.vectorstore.VectorStore
 import org.springframework.stereotype.Service
-import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class AiChatService(
@@ -22,14 +21,17 @@ class AiChatService(
 ) {
     private val log = LoggerFactory.getLogger(AiChatService::class.java)
 
-    private val userModes = ConcurrentHashMap<Long, String>()
+    companion object {
+        private const val MAX_MESSAGE_LENGTH = 4096
+        private const val MAX_INPUT_LENGTH = 4000
+    }
 
     private val simplePromptTemplate = PromptTemplate("""
-            Ты — дружелюбный и полезный ассистент. Отвечай на вопросы пользователя понятно, интересно и по возможности полно. 
+            Ты — дружелюбный и полезный ассистент. Отвечай на вопросы пользователя понятно, интересно и по возможности полно.
             Не ограничивайся никакими документами, если хочешь можешь использовать свои знания. Старайся отвечать лаконично и четко по вопросу.
-            
+
             {query}
-            
+
             Контекстная информация указана ниже, обрамленная ---------------------
 
             ---------------------
@@ -51,21 +53,25 @@ class AiChatService(
             пользователю, что ты не можешь ответить на вопрос.
         """.trimIndent())
 
-    companion object {
-        const val MAX_MESSAGE_LENGTH = 4096
-    }
+    /**
+     * Генерирует уникальный ID для памяти на основе chatId и режима.
+     * Это позволяет сохранять контекст диалога для каждого режима отдельно.
+     */
+    private fun getMemoryId(chatId: Long, mode: String): String = "chat:$chatId:mode:$mode"
 
     fun chat(message: UserInputMessageDto): List<String> {
-        /*val memory = chatMemory.get(message.chatId.toString())
-        val recentUserMessages = memory
-            .filter { it -> it.messageType == MessageType.USER }
-            .takeLast(1)
-            .joinToString("\n") { it.text }
-        val searchQuery = "$recentUserMessages\n${message.message}"*/
         val config = aiConfig.get()
 
         log.info("AI Config: topK: {}, similarityThreshold: {}, temperature: {}",
             config.topK, config.similarityThreshold, config.temperature)
+
+        // Ограничение входного сообщения для предотвращения перегрузки
+        val truncatedMessage = if (message.message.length > MAX_INPUT_LENGTH) {
+            log.warn("Message truncated for chatId=${message.chatId} (original: ${message.message.length}, max: $MAX_INPUT_LENGTH)")
+            message.message.take(MAX_INPUT_LENGTH)
+        } else {
+            message.message
+        }
 
         val searchRequest = SearchRequest.builder()
             .similarityThreshold(config.similarityThreshold)
@@ -90,23 +96,18 @@ class AiChatService(
             .promptTemplate(promptTemplate)
             .build()
 
-        val currentMode = userModes.get(message.chatId)
-
-        if (currentMode == null || currentMode != message.mode) {
-            userModes[message.chatId] = message.mode
-            chatMemory.clear(message.chatId.toString())
-            log.info("Mode changed for chatId {} -> clearing chat memory", message.chatId)
-        }
+        // Уникальный ID памяти для каждого режима
+        val memoryId = getMemoryId(message.chatId, message.mode)
 
         return try {
             val chatResponse = chatClient
                 .prompt()
                 .options(options)
                 .advisors { a ->
-                    a.param(ChatMemory.CONVERSATION_ID, message.chatId)
+                    a.param(ChatMemory.CONVERSATION_ID, memoryId)
                 }
                 .advisors(questionAdvisor)
-                .user(message.message)
+                .user(truncatedMessage)
                 .call()
                 .chatResponse()
 
@@ -118,7 +119,7 @@ class AiChatService(
                 listOf(textResponse)
             }
         } catch (ex: Exception) {
-            log.info("Generation failed", ex)
+            log.error("Generation failed for chatId=${message.chatId}, mode=${message.mode}", ex)
             listOf("Ошибка при генерации ответа. Попробуйте позже.")
         }
     }
