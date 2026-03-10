@@ -29,15 +29,9 @@ class KafkaConsumerService(
                 .build()
 
             telegramClient.execute(sendMessage)
-        } catch (e: org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException) {
-            if (e.message?.contains("can't parse entities") == true) {
-                log.warn("Markdown parsing failed for chatId=${message.chatId}, retrying as plain text: ${e.message}")
-                sendAsPlainText(message)
-            } else {
-                log.error("Failed to send message to chatId=${message.chatId}", e)
-            }
         } catch (e: Exception) {
             log.error("Failed to send message to chatId=${message.chatId}", e)
+            sendAsPlainText(message)
         }
     }
 
