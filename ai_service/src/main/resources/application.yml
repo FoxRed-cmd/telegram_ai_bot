@@ -4,7 +4,7 @@ spring:
   ai:
     openai:
       base-url: ${AI_URL:http://localhost:1234}
-      api-key: "lm-studio"
+      api-key: ${API_KEY:lm-studio}
       chat:
         options:
           model: ${CHAT_MODEL:qwen/qwen3-4b-2507}
