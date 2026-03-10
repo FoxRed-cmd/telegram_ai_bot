@@ -41,3 +41,8 @@ out/
 
 ### Env ###
 .env
+
+### AI ###
+.kilocode
+.qwen
+.kilocodemodes
