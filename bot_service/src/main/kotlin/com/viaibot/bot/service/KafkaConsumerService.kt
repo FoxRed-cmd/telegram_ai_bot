@@ -29,8 +29,29 @@ class KafkaConsumerService(
                 .build()
 
             telegramClient.execute(sendMessage)
+        } catch (e: org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException) {
+            if (e.message?.contains("can't parse entities") == true) {
+                log.warn("Markdown parsing failed for chatId=${message.chatId}, retrying as plain text: ${e.message}")
+                sendAsPlainText(message)
+            } else {
+                log.error("Failed to send message to chatId=${message.chatId}", e)
+            }
         } catch (e: Exception) {
             log.error("Failed to send message to chatId=${message.chatId}", e)
+        }
+    }
+
+    private fun sendAsPlainText(message: AnswerMessageDto) {
+        try {
+            val sendMessage = SendMessage
+                .builder()
+                .chatId(message.chatId)
+                .text(message.message)
+                .build()
+
+            telegramClient.execute(sendMessage)
+        } catch (e: Exception) {
+            log.error("Failed to send plain text message to chatId=${message.chatId}", e)
         }
     }
 }
